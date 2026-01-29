@@ -126,7 +126,7 @@ class StaticResource implements AppInterface
      *
      * @throws InvalidArgumentException
      */
-    protected function parsePath(string $path): array
+    private function parsePath(string $path): array
     {
         $path = ltrim($path, '/');
         $safePath = $this->driver->getRealPathSafety($path);
