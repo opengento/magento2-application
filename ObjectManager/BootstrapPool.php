@@ -35,9 +35,22 @@ class BootstrapPool
      */
     public function get(): AppBootstrap
     {
-        $pathInfo = $_SERVER['REQUEST_URI'];
-        if (str_starts_with(trim($pathInfo, '/') . '/', 'static/')) {
-            $pathInfo = $_GET['resource'] ?? $pathInfo;
+        // Prefer SCRIPT_FILENAME for area routing — FrankenPHP sets it from
+        // each worker's `file` directive at worker boot, so it's stable across
+        // try_files rewrites. REQUEST_URI is not: a Caddyfile that rewrites
+        // /static/version<N>/foo.css → /static.php?resource=foo.css before
+        // dispatching to the static.php worker leaves REQUEST_URI as
+        // "/static.php?resource=foo.css", which fails the "starts with
+        // static/" check below and falls through to the default `frontend`
+        // area — wrong DI graph for static.php's StaticResource app.
+        $scriptName = isset($_SERVER['SCRIPT_FILENAME']) ? \basename($_SERVER['SCRIPT_FILENAME']) : '';
+        if ($scriptName === 'static.php') {
+            $pathInfo = $_GET['resource'] ?? '';
+        } else {
+            $pathInfo = $_SERVER['REQUEST_URI'] ?? '';
+            if (str_starts_with(trim($pathInfo, '/') . '/', 'static/')) {
+                $pathInfo = $_GET['resource'] ?? $pathInfo;
+            }
         }
         $areaCode = $this->areaList->getCodeByFrontName(strtok(trim($pathInfo, '/'), '/'));
 
