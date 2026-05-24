@@ -22,4 +22,12 @@
             <argument name="publisher" xsi:type="object">developerPublisher</argument>
         </arguments>
     </type>
+    <!--
+        Replace Magento\Store\Model\StoreResolver so $scopeCode / $runMode are
+        sourced from the current request's $_SERVER on each getCurrentStoreId()
+        call rather than the worker-boot snapshot consumed by init_parameter
+        DI resolution. See Opengento\Application\App\Store\StoreResolver for
+        the full rationale.
+    -->
+    <preference for="Magento\Store\Model\StoreResolver" type="Opengento\Application\App\Store\StoreResolver"/>
 </config>
