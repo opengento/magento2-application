@@ -51,8 +51,8 @@ class BootstrapPool
     {
         // ToDo: we don't want to pass $_SERVER but a sanitized version with limited keys
         //       (they are frequently passed via the server conf, but should lives in config.php or env.php):
-        //       MAGE_DIRS, MAGE_FILESYSTEM_DRIVERS, MAGE_MODE, MAGE_REQUIRE_IS_INSTALLED,
-        //       MAGE_REQUIRE_MAINTENANCE, MAGE_CONFIG_FILE, MAGE_CONFIG, MAGE_PROFILER
+        //       MAGE_RUN_CODE, MAGE_RUN_TYPE, MAGE_DIRS, MAGE_FILESYSTEM_DRIVERS, MAGE_MODE, MAGE_PROFILER,
+        //       MAGE_REQUIRE_MAINTENANCE, MAGE_REQUIRE_IS_INSTALLED, MAGE_CONFIG, MAGE_CONFIG_FILE
         $bootstrap = AppBootstrap::create(BP, $_SERVER, $this->factory);
         $globalObjectManager = $bootstrap->getObjectManager();
         $globalObjectManager->get(State::class)->setAreaCode($areaCode);
