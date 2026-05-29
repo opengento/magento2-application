@@ -44,8 +44,6 @@ class AppBootstrap extends Bootstrap
      */
     public function createApplication($type, $arguments = []): ?AppInterface
     {
-        // ToDo: inject global MAGE_* variable living in $_SERVER to OM global arguments
-        //       those must be injected to the factoring living wihtin the OM then cleared
         $arguments['objectManager'] ??= $this->getObjectManager();
 
         return parent::createApplication($type, $arguments);

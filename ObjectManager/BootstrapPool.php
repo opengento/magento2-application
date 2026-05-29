@@ -12,6 +12,10 @@ use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManager\ConfigLoaderInterface;
 
+use function array_fill_keys;
+use function array_intersect_key;
+use function array_keys;
+use function array_replace;
 use function strtok;
 use function trim;
 
@@ -19,15 +23,35 @@ use const BP;
 
 class BootstrapPool
 {
+    private const array ALLOWED_RUNTIME_INIT_PARAMETERS = [
+        'MAGE_RUN_CODE' => 1,
+        'MAGE_RUN_TYPE' => 1,
+        'MAGE_PROFILER' => 1,
+        'MAGE_REQUIRE_MAINTENANCE' => 1,
+        'MAGE_REQUIRE_IS_INSTALLED' => 1,
+    ];
+    private const array ALLOWED_SETUP_INIT_PARAMETERS = [
+        'MAGE_DIRS' => 1,
+        'MAGE_FILESYSTEM_DRIVERS' => 1,
+        'MAGE_MODE' => 1,
+        'MAGE_PROFILER' => 1,
+        'MAGE_CONFIG' => 1,
+        'MAGE_CONFIG_FILE' => 1,
+    ];
+
     private AppObjectManagerFactory $factory;
     private AreaList $areaList;
 
     private array $bootstraps = [];
+    private array $globalParameters;
 
-    public function __construct()
-    {
-        $this->factory = AppBootstrap::createObjectManagerFactory(BP, $_SERVER);
-        $this->areaList = $this->factory->create($_SERVER)->get(AreaList::class);
+    public function __construct(
+        array $allowedSetupInitParameters = self::ALLOWED_SETUP_INIT_PARAMETERS,
+        private array $allowedRuntimeInitParameters = self::ALLOWED_RUNTIME_INIT_PARAMETERS,
+    ) {
+        $this->globalParameters = array_intersect_key($_SERVER, $allowedSetupInitParameters);
+        $this->factory = AppBootstrap::createObjectManagerFactory(BP, $this->globalParameters);
+        $this->areaList = $this->factory->create($this->globalParameters)->get(AreaList::class);
     }
 
     /**
@@ -41,7 +65,19 @@ class BootstrapPool
         }
         $areaCode = $this->areaList->getCodeByFrontName(strtok(trim($pathInfo, '/'), '/'));
 
-        return $this->bootstraps[$areaCode] ??= $this->createBootstrap($areaCode);
+        $bootstrap = $this->bootstraps[$areaCode] ??= $this->createBootstrap($areaCode);
+        // Ensure the $_SERVER based init parameters are set with the current context
+        $bootstrap->getObjectManager()->configure(
+            [
+                'arguments' => array_replace(
+                    $this->globalParameters,
+                    array_fill_keys(array_keys($this->allowedRuntimeInitParameters), null),
+                    array_intersect_key($_SERVER, $this->allowedRuntimeInitParameters),
+                )
+            ]
+        );
+
+        return $bootstrap;
     }
 
     /**
@@ -49,11 +85,7 @@ class BootstrapPool
      */
     private function createBootstrap(string $areaCode): AppBootstrap
     {
-        // ToDo: we don't want to pass $_SERVER but a sanitized version with limited keys
-        //       (they are frequently passed via the server conf, but should lives in config.php or env.php):
-        //       MAGE_RUN_CODE, MAGE_RUN_TYPE, MAGE_DIRS, MAGE_FILESYSTEM_DRIVERS, MAGE_MODE, MAGE_PROFILER,
-        //       MAGE_REQUIRE_MAINTENANCE, MAGE_REQUIRE_IS_INSTALLED, MAGE_CONFIG, MAGE_CONFIG_FILE
-        $bootstrap = AppBootstrap::create(BP, $_SERVER, $this->factory);
+        $bootstrap = AppBootstrap::create(BP, $this->globalParameters, $this->factory);
         $globalObjectManager = $bootstrap->getObjectManager();
         $globalObjectManager->get(State::class)->setAreaCode($areaCode);
         $globalObjectManager->configure($globalObjectManager->get(ConfigLoaderInterface::class)->load($areaCode));
