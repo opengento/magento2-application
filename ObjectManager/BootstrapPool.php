@@ -27,16 +27,16 @@ class BootstrapPool
         'MAGE_RUN_CODE' => null,
         'MAGE_RUN_TYPE' => null,
         'MAGE_PROFILER' => null,
-        'MAGE_REQUIRE_MAINTENANCE' => null,
-        'MAGE_REQUIRE_IS_INSTALLED' => null,
+        //'MAGE_REQUIRE_MAINTENANCE' => null,//ToDo
+        //'MAGE_REQUIRE_IS_INSTALLED' => null,//ToDo
     ];
     private const array ALLOWED_SETUP_INIT_PARAMETERS = [
-        'MAGE_DIRS' => null,
-        'MAGE_FILESYSTEM_DRIVERS' => null,
-        'MAGE_MODE' => null,
-        'MAGE_PROFILER' => null,
-        'MAGE_CONFIG' => null,
-        'MAGE_CONFIG_FILE' => null,
+        //'MAGE_DIRS' => null,//ToDo
+        //'MAGE_FILESYSTEM_DRIVERS' => null,//ToDo
+        //'MAGE_MODE' => null,
+        //'MAGE_PROFILER' => null,
+        //'MAGE_CONFIG' => null,//ToDo
+        //'MAGE_CONFIG_FILE' => null,//ToDo
     ];
 
     private AppObjectManagerFactory $factory;
