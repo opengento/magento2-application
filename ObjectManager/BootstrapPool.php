@@ -16,6 +16,7 @@ use function array_fill_keys;
 use function array_intersect_key;
 use function array_keys;
 use function array_replace;
+use function preg_match;
 use function strtok;
 use function trim;
 
@@ -62,6 +63,8 @@ class BootstrapPool
         $pathInfo = $_SERVER['REQUEST_URI'];
         if (str_starts_with($pathInfo, '/static.php?')) {
             $pathInfo = $_GET['resource'] ?? $pathInfo;
+        } elseif (preg_match('/^\/static\/(version\d*\/)?(.*)$/', $pathInfo, $matches)) {
+            $pathInfo = $matches[2] ?? $matches[1] ?? $matches[0] ?? $pathInfo;
         }
         $areaCode = $this->areaList->getCodeByFrontName(strtok(trim($pathInfo, '/'), '/'));
 
