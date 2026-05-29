@@ -24,19 +24,19 @@ use const BP;
 class BootstrapPool
 {
     private const array ALLOWED_RUNTIME_INIT_PARAMETERS = [
-        'MAGE_RUN_CODE' => 1,
-        'MAGE_RUN_TYPE' => 1,
-        'MAGE_PROFILER' => 1,
-        'MAGE_REQUIRE_MAINTENANCE' => 1,
-        'MAGE_REQUIRE_IS_INSTALLED' => 1,
+        'MAGE_RUN_CODE' => null,
+        'MAGE_RUN_TYPE' => null,
+        'MAGE_PROFILER' => null,
+        'MAGE_REQUIRE_MAINTENANCE' => null,
+        'MAGE_REQUIRE_IS_INSTALLED' => null,
     ];
     private const array ALLOWED_SETUP_INIT_PARAMETERS = [
-        'MAGE_DIRS' => 1,
-        'MAGE_FILESYSTEM_DRIVERS' => 1,
-        'MAGE_MODE' => 1,
-        'MAGE_PROFILER' => 1,
-        'MAGE_CONFIG' => 1,
-        'MAGE_CONFIG_FILE' => 1,
+        'MAGE_DIRS' => null,
+        'MAGE_FILESYSTEM_DRIVERS' => null,
+        'MAGE_MODE' => null,
+        'MAGE_PROFILER' => null,
+        'MAGE_CONFIG' => null,
+        'MAGE_CONFIG_FILE' => null,
     ];
 
     private AppObjectManagerFactory $factory;
@@ -71,7 +71,7 @@ class BootstrapPool
             [
                 'arguments' => array_replace(
                     $this->globalParameters,
-                    array_fill_keys(array_keys($this->allowedRuntimeInitParameters), null),
+                    $this->allowedRuntimeInitParameters,
                     array_intersect_key($_SERVER, $this->allowedRuntimeInitParameters),
                 )
             ]
