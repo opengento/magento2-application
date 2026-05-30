@@ -39,6 +39,9 @@ use const PHP_EOL;
 
 class Media implements AppInterface
 {
+    private WriteInterface $this->pubDirectory;
+    private WriteInterface $mediaDirectory;
+
     public function __construct(
         private Filesystem $filesystem,
         private SerializerInterface $serializer,
@@ -48,7 +51,10 @@ class Media implements AppInterface
         private PlaceholderFactory $placeholderFactory,
         private CatalogMediaConfig $catalogMediaConfig,
         private ImageResize $imageResize,
-    ) {}
+    ) {
+        $this->pubDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::PUB);
+        $this->mediaDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+    }
 
     /**
      * @throws FileSystemException
@@ -66,15 +72,13 @@ class Media implements AppInterface
         //    $params[Factory::PARAM_CACHE_FORCED_OPTIONS] = ['frontend_options' => ['disable_save' => true]];
         //}
 
-        $pubDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::PUB);
-
-        $fileAbsolutePath = $pubDirectory->getAbsolutePath($filePath);
+        $fileAbsolutePath = $this->pubDirectory->getAbsolutePath($filePath);
         $fileRelativePath = str_replace(rtrim($mediaDirectory, '/') . '/', '', $fileAbsolutePath);
         if (!$this->isAllowed($fileRelativePath, $allowedResources)) {
             throw new LogicException('The path is not allowed: ' . $filePath);
         }
-        if ($pubDirectory->isReadable($filePath)) {
-            if ($pubDirectory->isDirectory($filePath)) {
+        if ($this->pubDirectory->isReadable($filePath)) {
+            if ($this->pubDirectory->isDirectory($filePath)) {
                 throw new LogicException('The path is not a valid file: ' . $filePath);
             }
             $this->response->setFilePath($fileAbsolutePath);
@@ -83,9 +87,9 @@ class Media implements AppInterface
         }
 
         try {
-            $this->createLocalCopy($pubDirectory, $filePath);
+            $this->createLocalCopy($filePath);
 
-            if ($pubDirectory->isReadable($filePath)) {
+            if ($this->pubDirectory->isReadable($filePath)) {
                 $this->response->setFilePath($fileAbsolutePath);
             } else {
                 $this->setPlaceholderImage();
@@ -129,8 +133,7 @@ class Media implements AppInterface
                 $allowedResources = $config['allowed_resources'];
             }
         }
-        $mediaDirectoryRead = $this->filesystem->getDirectoryRead(DirectoryList::MEDIA);
-        if (rtrim($mediaDirectory, '/') !== rtrim($mediaDirectoryRead->getAbsolutePath(), '/')) {
+        if (rtrim($mediaDirectory, '/') !== rtrim($this->mediaDirectory->getAbsolutePath(), '/')) {
             /** @var Config $config */
             $config = $this->configFactory->create(['cacheFile' => $varDirectoryRead->getAbsolutePath($resConfigFile)]);
             $config->save();
@@ -157,16 +160,16 @@ class Media implements AppInterface
      *
      * @throws NotFoundException
      */
-    private function createLocalCopy(WriteInterface $write, string $fileName): void
+    private function createLocalCopy(string $fileName): void
     {
-        $synchronizer = $this->syncFactory->create(['directory' => $write]);
+        $synchronizer = $this->syncFactory->create(['directory' => $this->pubDirectory]);
         $synchronizer->synchronize($fileName);
 
-        if (!$write->isReadable($fileName)
+        if (!$this->pubDirectory->isReadable($fileName)
             && $this->catalogMediaConfig->getMediaUrlFormat() === CatalogMediaConfig::HASH
         ) {
             $this->imageResize->resizeFromImageName($this->getOriginalImage($fileName));
-            if (!$write->isReadable($fileName)) {
+            if (!$this->pubDirectory->isReadable($fileName)) {
                 $synchronizer->synchronize($fileName);
             }
         }
@@ -174,7 +177,7 @@ class Media implements AppInterface
 
     private function createPlaceholderLocalCopy(?string $relativeFileName): void
     {
-        $synchronizer = $this->syncFactory->create(['directory' => $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA)]);
+        $synchronizer = $this->syncFactory->create(['directory' => $this->mediaDirectory]);
         $synchronizer->synchronize($relativeFileName);
     }
 
