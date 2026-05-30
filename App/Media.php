@@ -39,7 +39,7 @@ use const PHP_EOL;
 
 class Media implements AppInterface
 {
-    private WriteInterface $this->pubDirectory;
+    private WriteInterface $pubDirectory;
     private WriteInterface $mediaDirectory;
 
     public function __construct(
@@ -133,7 +133,7 @@ class Media implements AppInterface
                 $allowedResources = $config['allowed_resources'];
             }
         }
-        if (rtrim($mediaDirectory, '/') !== rtrim($this->mediaDirectory->getAbsolutePath(), '/')) {
+        if (!$mediaDirectory || (rtrim($mediaDirectory, '/') !== rtrim($this->mediaDirectory->getAbsolutePath(), '/'))) {
             /** @var Config $config */
             $config = $this->configFactory->create(['cacheFile' => $varDirectoryRead->getAbsolutePath($resConfigFile)]);
             $config->save();
