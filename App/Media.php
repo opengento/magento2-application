@@ -8,29 +8,46 @@ declare(strict_types=1);
 namespace Opengento\Application\App;
 
 use Exception;
+use LogicException;
+use Magento\Catalog\Model\Config\CatalogMediaConfig;
+use Magento\Catalog\Model\View\Asset\PlaceholderFactory;
 use Magento\Framework\App\Bootstrap;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\App\State;
 use Magento\Framework\AppInterface;
 use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\Filesystem;
+use Magento\Framework\Filesystem\Directory\WriteInterface;
+use Magento\Framework\Filesystem\Driver\File;
 use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\Cookie\PhpCookieReader;
 use Magento\Framework\Stdlib\StringUtils;
-use Magento\MediaStorage\App\MediaFactory;
+use Magento\MediaStorage\Model\File\Storage\Config;
+use Magento\MediaStorage\Model\File\Storage\ConfigFactory;
 use Magento\MediaStorage\Model\File\Storage\Response;
 use Magento\MediaStorage\Model\File\Storage\Request as StorageRequest;
+use Magento\MediaStorage\Model\File\Storage\SynchronizationFactory;
+use Magento\MediaStorage\Service\ImageResize;
 
 use function str_starts_with;
+use function rtrim;
+
+use const PHP_EOL;
 
 class Media implements AppInterface
 {
     public function __construct(
         private Filesystem $filesystem,
         private SerializerInterface $serializer,
-        private MediaFactory $mediaFactory,
         private Response $response,
+        private ConfigFactory $configFactory,
+        private SynchronizationFactory $syncFactory,
+        private PlaceholderFactory $placeholderFactory,
+        private CatalogMediaConfig $catalogMediaConfig,
+        private ImageResize $imageResize,
     ) {}
 
     /**
@@ -38,43 +55,8 @@ class Media implements AppInterface
      */
     public function launch(): ResponseInterface
     {
-        $mediaDirectory = null;
-        $varDirectoryRead = $this->filesystem->getDirectoryRead(DirectoryList::VAR_DIR);
-        $configCacheFile = 'resource_config.json';
+        ['media_directory' => $mediaDirectory, 'allowed_resources' => $allowedResources] = $this->loadResourceConfig();
         $filePath = (new StorageRequest(new Request(new PhpCookieReader(), new StringUtils())))->getPathInfo();
-        if ($varDirectoryRead->isExist($configCacheFile) && $varDirectoryRead->isReadable($configCacheFile)) {
-            $config = $this->serializer->unserialize($varDirectoryRead->readFile($configCacheFile));
-
-            // Checking update time
-            if (isset($config['update_time'], $config['media_directory'], $config['allowed_resources'])
-                && $varDirectoryRead->stat($configCacheFile)['mtime'] + $config['update_time'] > time()
-            ) {
-                $mediaDirectory = $config['media_directory'];
-                $allowedResources = $config['allowed_resources'];
-
-                // Serve file if it's materialized
-                if ($mediaDirectory) {
-                    $fileAbsolutePath = $this->filesystem->getDirectoryRead(DirectoryList::PUB)->getAbsolutePath($filePath);
-                    $mediaDirectoryRead = $this->filesystem->getDirectoryRead(DirectoryList::MEDIA);
-                    $fileRelativePath = $mediaDirectoryRead->getRelativePath($fileAbsolutePath);
-
-                    if (!$this->isAllowed($fileRelativePath, $allowedResources)) {
-                        $this->response->setHttpResponseCode(404);
-                        $this->response->setFilePath($fileAbsolutePath);
-
-                        return $this->response;
-                    }
-                    if ($mediaDirectoryRead->isReadable($fileRelativePath)) {
-                        $this->response->setFilePath($fileAbsolutePath);
-                        if ($mediaDirectoryRead->isDirectory($fileRelativePath)) {
-                            $this->response->setHttpResponseCode(404);
-                        }
-
-                        return $this->response;
-                    }
-                }
-            }
-        }
 
         // ToDo
         // Materialize file in application
@@ -84,14 +66,35 @@ class Media implements AppInterface
         //    $params[Factory::PARAM_CACHE_FORCED_OPTIONS] = ['frontend_options' => ['disable_save' => true]];
         //}
 
-        return $this->mediaFactory->create(
-            [
-                'mediaDirectory' => $mediaDirectory,
-                'configCacheFile' => $varDirectoryRead->getAbsolutePath($configCacheFile),
-                'isAllowed' => $this->isAllowed(...),
-                'relativeFileName' => $filePath,
-            ]
-        )->launch();
+        $pubDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::PUB);
+
+        $fileAbsolutePath = $pubDirectory->getAbsolutePath($filePath);
+        $fileRelativePath = str_replace(rtrim($mediaDirectory, '/') . '/', '', $fileAbsolutePath);
+        if (!$this->isAllowed($fileRelativePath, $allowedResources)) {
+            throw new LogicException('The path is not allowed: ' . $filePath);
+        }
+        if ($pubDirectory->isReadable($filePath)) {
+            if ($pubDirectory->isDirectory($filePath)) {
+                throw new LogicException('The path is not a valid file: ' . $filePath);
+            }
+            $this->response->setFilePath($fileAbsolutePath);
+
+            return $this->response;
+        }
+
+        try {
+            $this->createLocalCopy($pubDirectory, $filePath);
+
+            if ($pubDirectory->isReadable($filePath)) {
+                $this->response->setFilePath($fileAbsolutePath);
+            } else {
+                $this->setPlaceholderImage();
+            }
+        } catch (Exception) {
+            $this->setPlaceholderImage();
+        }
+
+        return $this->response;
     }
 
     public function catchException(Bootstrap $bootstrap, Exception $exception): bool
@@ -99,11 +102,43 @@ class Media implements AppInterface
         $this->response->setHttpResponseCode(404);
         if ($bootstrap->isDeveloperMode()) {
             $this->response->setHeader('Content-Type', 'text/plain');
-            $this->response->setBody($exception->getMessage() . "\n" . $exception->getTraceAsString());
+            $this->response->setBody($exception->getMessage() . PHP_EOL . $exception->getTraceAsString());
         }
         $this->response->sendResponse();
 
         return true;
+    }
+
+    /**
+     * @return array{media_directory: string, allowed_resources: array}
+     * @throws FileSystemException
+     */
+    private function loadResourceConfig(): array
+    {
+        $mediaDirectory = null;
+        $allowedResources = [];
+        $resConfigFile = 'resource_config.json';
+
+        $varDirectoryRead = $this->filesystem->getDirectoryRead(DirectoryList::VAR_DIR);
+        if ($varDirectoryRead->isExist($resConfigFile) && $varDirectoryRead->isReadable($resConfigFile)) {
+            $config = $this->serializer->unserialize($varDirectoryRead->readFile($resConfigFile));
+            if (isset($config['update_time'], $config['media_directory'], $config['allowed_resources'])
+                && $varDirectoryRead->stat($resConfigFile)['mtime'] + $config['update_time'] > time()
+            ) {
+                $mediaDirectory = $config['media_directory'];
+                $allowedResources = $config['allowed_resources'];
+            }
+        }
+        $mediaDirectoryRead = $this->filesystem->getDirectoryRead(DirectoryList::MEDIA);
+        if (rtrim($mediaDirectory, '/') !== rtrim($mediaDirectoryRead->getAbsolutePath(), '/')) {
+            /** @var Config $config */
+            $config = $this->configFactory->create(['cacheFile' => $varDirectoryRead->getAbsolutePath($resConfigFile)]);
+            $config->save();
+            $mediaDirectory = $config->getMediaDirectory();
+            $allowedResources = $config->getAllowedResources();
+        }
+
+        return ['media_directory' => $mediaDirectory, 'allowed_resources' => $allowedResources];
     }
 
     private function isAllowed(string $resource, array $allowedResources): bool
@@ -115,5 +150,46 @@ class Media implements AppInterface
         }
 
         return false;
+    }
+
+    /**
+     * Create local copy of file and perform resizing if necessary.
+     *
+     * @throws NotFoundException
+     */
+    private function createLocalCopy(WriteInterface $write, string $fileName): void
+    {
+        $synchronizer = $this->syncFactory->create(['directory' => $write]);
+        $synchronizer->synchronize($fileName);
+
+        if (!$write->isReadable($fileName)
+            && $this->catalogMediaConfig->getMediaUrlFormat() === CatalogMediaConfig::HASH
+        ) {
+            $this->imageResize->resizeFromImageName($this->getOriginalImage($fileName));
+            if (!$write->isReadable($fileName)) {
+                $synchronizer->synchronize($fileName);
+            }
+        }
+    }
+
+    private function createPlaceholderLocalCopy(?string $relativeFileName): void
+    {
+        $synchronizer = $this->syncFactory->create(['directory' => $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA)]);
+        $synchronizer->synchronize($relativeFileName);
+    }
+
+    private function setPlaceholderImage(): void
+    {
+        $placeholder = $this->placeholderFactory->create(['type' => 'image']);
+        $this->createPlaceholderLocalCopy($placeholder->getRelativePath());
+        $this->response->setFilePath($placeholder->getPath());
+    }
+
+    /**
+     * Find the path to the original image of the cache path
+     */
+    private function getOriginalImage(string $resizedImagePath): string
+    {
+        return preg_replace('|^.*((?:/[^/]+){3})$|', '$1', $resizedImagePath);
     }
 }
