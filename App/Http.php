@@ -9,14 +9,13 @@ namespace Opengento\Application\App;
 
 use Exception;
 use InvalidArgumentException;
-use Magento\Framework\App;
 use Magento\Framework\App\Bootstrap;
 use Magento\Framework\App\ExceptionHandlerInterface;
 use Magento\Framework\App\FrontControllerInterface as FrontController;
 use Magento\Framework\App\HttpRequestInterface;
+use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\Response\HttpInterface;
-use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\AppInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Event\Manager;

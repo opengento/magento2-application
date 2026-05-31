@@ -12,9 +12,7 @@ use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManager\ConfigLoaderInterface;
 
-use function array_fill_keys;
 use function array_intersect_key;
-use function array_keys;
 use function array_replace;
 use function preg_match;
 use function strtok;

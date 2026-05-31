@@ -14,26 +14,24 @@ use Magento\Catalog\Model\View\Asset\PlaceholderFactory;
 use Magento\Framework\App\Bootstrap;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\App\State;
 use Magento\Framework\AppInterface;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Filesystem\Directory\WriteInterface;
-use Magento\Framework\Filesystem\Driver\File;
 use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\Cookie\PhpCookieReader;
 use Magento\Framework\Stdlib\StringUtils;
 use Magento\MediaStorage\Model\File\Storage\Config;
 use Magento\MediaStorage\Model\File\Storage\ConfigFactory;
-use Magento\MediaStorage\Model\File\Storage\Response;
 use Magento\MediaStorage\Model\File\Storage\Request as StorageRequest;
+use Magento\MediaStorage\Model\File\Storage\Response;
 use Magento\MediaStorage\Model\File\Storage\SynchronizationFactory;
 use Magento\MediaStorage\Service\ImageResize;
 
-use function str_starts_with;
 use function rtrim;
+use function str_starts_with;
 
 use const PHP_EOL;
 
