@@ -31,8 +31,11 @@ use Magento\MediaStorage\Model\File\Storage\Synchronization;
 use Magento\MediaStorage\Model\File\Storage\SynchronizationFactory;
 use Magento\MediaStorage\Service\ImageResize;
 
+use function preg_replace;
 use function rtrim;
+use function str_replace;
 use function str_starts_with;
+use function time;
 
 use const PHP_EOL;
 
