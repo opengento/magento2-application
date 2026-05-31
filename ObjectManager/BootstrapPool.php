@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Opengento\Application\ObjectManager;
 
+use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
@@ -15,6 +16,7 @@ use Magento\Framework\ObjectManager\ConfigLoaderInterface;
 use function array_intersect_key;
 use function array_replace;
 use function preg_match;
+use function str_starts_with;
 use function strtok;
 use function trim;
 
@@ -58,14 +60,7 @@ class BootstrapPool
      */
     public function get(): AppBootstrap
     {
-        $pathInfo = $_SERVER['REQUEST_URI'];
-        if (str_starts_with($pathInfo, '/static.php?')) {
-            $pathInfo = $_GET['resource'] ?? $pathInfo;
-        } elseif (preg_match('/^\/static\/(version\d*\/)?(.*)$/', $pathInfo, $matches)) {
-            $pathInfo = $matches[2] ?? $matches[1] ?? $matches[0] ?? $pathInfo;
-        }
-        $areaCode = $this->areaList->getCodeByFrontName(strtok(trim($pathInfo, '/'), '/'));
-
+        $areaCode = $this->resolveAreaCode();
         $bootstrap = $this->bootstraps[$areaCode] ??= $this->createBootstrap($areaCode);
         // Ensure the $_SERVER based init parameters are set with the current context
         $bootstrap->getObjectManager()->configure(
@@ -92,5 +87,20 @@ class BootstrapPool
         $globalObjectManager->configure($globalObjectManager->get(ConfigLoaderInterface::class)->load($areaCode));
 
         return $bootstrap;
+    }
+
+    private function resolveAreaCode(): string
+    {
+        $pathInfo = $_SERVER['REQUEST_URI'];
+        if (str_starts_with($pathInfo, '/get.php/') || str_starts_with($pathInfo, '/media/')) {
+            return Area::AREA_GLOBAL;
+        }
+        if (str_starts_with($pathInfo, '/static.php?')) {
+            $pathInfo = $_GET['resource'] ?? $pathInfo;
+        } elseif (preg_match('/^\/static\/(version\d*\/)?(.*)$/', $pathInfo, $matches)) {
+            $pathInfo = $matches[2] ?? $matches[1] ?? $matches[0] ?? $pathInfo;
+        }
+
+        return $this->areaList->getCodeByFrontName(strtok(trim($pathInfo, '/'), '/'));
     }
 }
