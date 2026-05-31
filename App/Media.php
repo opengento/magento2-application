@@ -27,6 +27,7 @@ use Magento\MediaStorage\Model\File\Storage\Config;
 use Magento\MediaStorage\Model\File\Storage\ConfigFactory;
 use Magento\MediaStorage\Model\File\Storage\Request as StorageRequest;
 use Magento\MediaStorage\Model\File\Storage\Response;
+use Magento\MediaStorage\Model\File\Storage\Synchronization;
 use Magento\MediaStorage\Model\File\Storage\SynchronizationFactory;
 use Magento\MediaStorage\Service\ImageResize;
 
@@ -160,6 +161,7 @@ class Media implements AppInterface
      */
     private function createLocalCopy(string $fileName): void
     {
+        /** @var Synchronization $synchronizer */
         $synchronizer = $this->syncFactory->create(['directory' => $this->pubDirectory]);
         $synchronizer->synchronize($fileName);
 
@@ -175,6 +177,7 @@ class Media implements AppInterface
 
     private function createPlaceholderLocalCopy(?string $relativeFileName): void
     {
+        /** @var Synchronization $synchronizer */
         $synchronizer = $this->syncFactory->create(['directory' => $this->mediaDirectory]);
         $synchronizer->synchronize($relativeFileName);
     }
