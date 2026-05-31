@@ -15,6 +15,7 @@
         "php": "^8.3",
         "psr/log": "*",
         "magento/framework": "*",
+        "magento/module-catalog": "*",
         "magento/module-media-storage": "*"
     },
     "require-dev": {
