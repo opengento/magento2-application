@@ -19,13 +19,12 @@ use Magento\Framework\App\Response\HttpInterface;
 use Magento\Framework\AppInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Event\Manager;
-use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 
 class Http implements AppInterface
 {
     public function __construct(
-        private ObjectManagerInterface $objectManager,
+        private FrontController $frontController,
         private Manager $eventManager,
         private Registry $registry,
         private ExceptionHandlerInterface $exceptionHandler,
@@ -38,12 +37,9 @@ class Http implements AppInterface
      */
     public function launch(): HttpInterface
     {
-        /** @var FrontController $frontController */
-        $frontController = $this->objectManager->create(FrontController::class);
-
         $response = $this->handleHead(
             $this->request,
-            $this->handleResponse($frontController->dispatch($this->request))
+            $this->handleResponse($this->frontController->dispatch($this->request))
         );
 
         // This event gives possibility to launch something before sending output (allow cookie setting)
