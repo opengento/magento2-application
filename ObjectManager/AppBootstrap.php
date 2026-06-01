@@ -42,16 +42,6 @@ class AppBootstrap extends Bootstrap
     /**
      * @inerhitDoc
      */
-    public function createApplication($type, $arguments = []): ?AppInterface
-    {
-        $arguments['objectManager'] ??= $this->getObjectManager();
-
-        return parent::createApplication($type, $arguments);
-    }
-
-    /**
-     * @inerhitDoc
-     */
     public function run(AppInterface $application): void
     {
         parent::run($application);
