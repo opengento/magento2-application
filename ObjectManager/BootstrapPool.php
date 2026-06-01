@@ -47,7 +47,7 @@ class BootstrapPool
     private array $globalParameters;
 
     public function __construct(
-        array $initParameters =  [],
+        array $initParameters = [],
         array $allowedSetupInitParameters = self::ALLOWED_SETUP_INIT_PARAMETERS,
         private array $allowedRuntimeInitParameters = self::ALLOWED_RUNTIME_INIT_PARAMETERS,
     ) {
@@ -83,9 +83,9 @@ class BootstrapPool
     private function createBootstrap(string $areaCode): AppBootstrap
     {
         $bootstrap = AppBootstrap::create(BP, $this->globalParameters, $this->factory);
-        $globalObjectManager = $bootstrap->getObjectManager();
-        $globalObjectManager->get(State::class)->setAreaCode($areaCode);
-        $globalObjectManager->configure($globalObjectManager->get(ConfigLoaderInterface::class)->load($areaCode));
+        $objectManager = $bootstrap->getObjectManager();
+        $objectManager->get(State::class)->setAreaCode($areaCode);
+        $objectManager->configure($objectManager->get(ConfigLoaderInterface::class)->load($areaCode));
 
         return $bootstrap;
     }
