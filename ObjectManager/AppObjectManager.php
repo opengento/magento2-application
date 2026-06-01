@@ -12,6 +12,7 @@ use Magento\Framework\ObjectManager\ConfigInterface;
 use Magento\Framework\ObjectManager\FactoryInterface;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Framework\ObjectManager\Resetter\Resetter;
+use Magento\Framework\ObjectManager\Resetter\ResetterFactory;
 use Magento\Framework\ObjectManager\Resetter\ResetterInterface;
 use ReflectionException;
 
@@ -24,7 +25,7 @@ class AppObjectManager extends ObjectManager implements ResetAfterRequestInterfa
         ConfigInterface $config,
         array &$sharedInstances = []
     ) {
-        $this->resetter = new Resetter();
+        $this->resetter = ResetterFactory::create();
         $this->resetter->setObjectManager($this);
         parent::__construct(new FactoryProxy($factory, $this->resetter), $config, $sharedInstances);
     }
