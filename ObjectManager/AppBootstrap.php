@@ -7,11 +7,16 @@ declare(strict_types=1);
 
 namespace Opengento\Application\ObjectManager;
 
+use Exception;
 use Magento\Framework\App\Bootstrap;
+use Magento\Framework\App\ErrorHandler;
 use Magento\Framework\App\ObjectManagerFactory;
 use Magento\Framework\App\State\ReloadProcessorInterface;
 use Magento\Framework\AppInterface;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
+use Magento\Framework\Profiler;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
 use function gc_collect_cycles;
 
@@ -44,7 +49,32 @@ class AppBootstrap extends Bootstrap
      */
     public function run(AppInterface $application): void
     {
-        parent::run($application);
+        try {
+            try {
+                Profiler::start('magento');
+                $handler = new ErrorHandler();
+                set_error_handler([$handler, 'handler']);
+                $this->assertMaintenance();
+                $this->assertInstalled();
+                $response = $application->launch();
+                $response->sendResponse();
+                Profiler::stop('magento');
+            } catch (Exception $e) {
+                Profiler::stop('magento');
+                $this->getObjectManager()->get(LoggerInterface::class)->error($e->getMessage());
+                if (!$application->catchException($this, $e)) {
+                    throw $e;
+                }
+            } finally {
+                $this->resetState();
+            }
+        } catch (Throwable $e) {
+            $this->terminate($e);
+        }
+    }
+
+    private function resetState(): void
+    {
         $objectManager = $this->getObjectManager();
         $reloadProcessor = $objectManager->get(ReloadProcessorInterface::class);
         $reloadProcessor->reloadState();

@@ -25,8 +25,8 @@ class AppObjectManager extends ObjectManager implements ResetAfterRequestInterfa
         array &$sharedInstances = []
     ) {
         $this->resetter = new Resetter();
-        parent::__construct($factory, $config, $sharedInstances);
         $this->resetter->setObjectManager($this);
+        parent::__construct(new FactoryProxy($factory, $this->resetter), $config, $sharedInstances);
     }
 
     /**
@@ -36,16 +36,5 @@ class AppObjectManager extends ObjectManager implements ResetAfterRequestInterfa
     public function _resetState(): void
     {
         $this->resetter->_resetState();
-    }
-
-    /**
-     * @ingeritdoc
-     */
-    public function create($type, array $arguments = [])
-    {
-        $object = parent::create($type, $arguments);
-        $this->resetter->addInstance($object);
-
-        return $object;
     }
 }
