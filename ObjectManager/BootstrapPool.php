@@ -47,10 +47,11 @@ class BootstrapPool
     private array $globalParameters;
 
     public function __construct(
+        array $initParameters =  [],
         array $allowedSetupInitParameters = self::ALLOWED_SETUP_INIT_PARAMETERS,
         private array $allowedRuntimeInitParameters = self::ALLOWED_RUNTIME_INIT_PARAMETERS,
     ) {
-        $this->globalParameters = array_intersect_key($_SERVER, $allowedSetupInitParameters);
+        $this->globalParameters = array_intersect_key($initParameters, $allowedSetupInitParameters);
         $this->factory = AppBootstrap::createObjectManagerFactory(BP, $this->globalParameters);
         $this->areaList = $this->factory->create($this->globalParameters)->get(AreaList::class);
     }
@@ -58,17 +59,17 @@ class BootstrapPool
     /**
      * @throws LocalizedException
      */
-    public function get(): AppBootstrap
+    public function get(array $server, array $get): AppBootstrap
     {
-        $areaCode = $this->resolveAreaCode();
+        $areaCode = $this->resolveAreaCode($server, $get);
         $bootstrap = $this->bootstraps[$areaCode] ??= $this->createBootstrap($areaCode);
-        // Ensure the $_SERVER based init parameters are set with the current context
+        // Ensure the server arguments are set with the current context
         $bootstrap->getObjectManager()->configure(
             [
                 'arguments' => array_replace(
                     $this->globalParameters,
                     $this->allowedRuntimeInitParameters,
-                    array_intersect_key($_SERVER, $this->allowedRuntimeInitParameters),
+                    array_intersect_key($server, $this->allowedRuntimeInitParameters),
                 )
             ]
         );
@@ -89,14 +90,14 @@ class BootstrapPool
         return $bootstrap;
     }
 
-    private function resolveAreaCode(): string
+    private function resolveAreaCode(array $server, array $get): string
     {
-        $pathInfo = $_SERVER['REQUEST_URI'];
+        $pathInfo = $server['REQUEST_URI'];
         if (str_starts_with($pathInfo, '/get.php/') || str_starts_with($pathInfo, '/media/')) {
             return Area::AREA_GLOBAL;
         }
         if (str_starts_with($pathInfo, '/static.php?')) {
-            $pathInfo = $_GET['resource'] ?? $pathInfo;
+            $pathInfo = $get['resource'] ?? $pathInfo;
         } elseif (preg_match('/^\/static\/(version\d*\/)?(.*)$/', $pathInfo, $matches)) {
             $pathInfo = $matches[2] ?? $matches[1] ?? $matches[0] ?? $pathInfo;
         }
