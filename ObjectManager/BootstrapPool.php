@@ -39,15 +39,15 @@ class BootstrapPool
     ];
 
     private AreaList $areaList;
-
+    private AppObjectManagerFactory $factory;
     private array $bootstraps = [];
 
     public function __construct(
         private array $globalParameters = [],
         private array $allowedRuntimeInitParameters = self::ALLOWED_RUNTIME_INIT_PARAMETERS,
     ) {
-        $factory = AppBootstrap::createObjectManagerFactory(BP, $this->globalParameters);
-        $this->areaList = $factory->create($this->globalParameters)->get(AreaList::class);
+        $this->factory = AppBootstrap::createObjectManagerFactory(BP, $this->globalParameters);
+        $this->areaList = $this->factory->create($this->globalParameters)->get(AreaList::class);
     }
 
     /**
@@ -76,7 +76,7 @@ class BootstrapPool
      */
     private function createBootstrap(string $areaCode): AppBootstrap
     {
-        $bootstrap = AppBootstrap::create(BP, $this->globalParameters);
+        $bootstrap = AppBootstrap::create(BP, $this->globalParameters, $this->factory);
         $objectManager = $bootstrap->getObjectManager();
         $objectManager->configure($objectManager->get(ConfigLoaderInterface::class)->load($areaCode));
         //ToDo check for missing custom configuration to add

@@ -7,6 +7,7 @@ declare(strict_types=1);
 
 namespace Opengento\Application\ObjectManager\Environment\Factory;
 
+use Magento\Framework\ObjectManager\ConfigInterface;
 use Magento\Framework\ObjectManager\Factory\Compiled as FactoryCompiled;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Framework\ObjectManager\Resetter\ResetterFactory;
@@ -17,10 +18,13 @@ class Compiled extends FactoryCompiled implements ResetAfterRequestInterface
 {
     private ResetterInterface $resetter;
 
-    public function __construct(...$args)
-    {
+    public function __construct(
+        ConfigInterface $config,
+        array &$sharedInstances = [],
+        array $globalArguments = []
+    ) {
         $this->resetter = ResetterFactory::create();
-        parent::__construct(...$args);
+        parent::__construct($config, $sharedInstances, $globalArguments);
     }
 
     public function create($requestedType, array $arguments = []): object
