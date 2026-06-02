@@ -11,10 +11,8 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManager\ConfigInterface;
 use Magento\Framework\ObjectManager\FactoryInterface;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
-use Magento\Framework\ObjectManager\Resetter\Resetter;
 use Magento\Framework\ObjectManager\Resetter\ResetterFactory;
 use Magento\Framework\ObjectManager\Resetter\ResetterInterface;
-use ReflectionException;
 
 class AppObjectManager extends ObjectManager implements ResetAfterRequestInterface
 {
@@ -32,7 +30,6 @@ class AppObjectManager extends ObjectManager implements ResetAfterRequestInterfa
 
     /**
      * @ingeritdoc
-     * @throws ReflectionException
      */
     public function _resetState(): void
     {
