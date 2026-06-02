@@ -22,6 +22,4 @@
             <argument name="publisher" xsi:type="object">developerPublisher</argument>
         </arguments>
     </type>
-    <preference for="Magento\Framework\ObjectManager\Factory\Dynamic\Developer" type="Opengento\Application\ObjectManager\Environment\Factory\Dynamic\Developer"/>
-    <preference for="Magento\Framework\ObjectManager\Factory\Compiled" type="Opengento\Application\ObjectManager\Environment\Factory\Compiled"/>
 </config>
