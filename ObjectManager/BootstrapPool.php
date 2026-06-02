@@ -30,8 +30,6 @@ class BootstrapPool
         'MAGE_PROFILER' => null,
         //'MAGE_REQUIRE_MAINTENANCE' => null,//ToDo
         //'MAGE_REQUIRE_IS_INSTALLED' => null,//ToDo
-    ];
-    private const array ALLOWED_SETUP_INIT_PARAMETERS = [
         //'MAGE_DIRS' => null,//ToDo
         //'MAGE_FILESYSTEM_DRIVERS' => null,//ToDo
         //'MAGE_MODE' => null,
@@ -40,20 +38,16 @@ class BootstrapPool
         //'MAGE_CONFIG_FILE' => null,//ToDo
     ];
 
-    private AppObjectManagerFactory $factory;
     private AreaList $areaList;
 
     private array $bootstraps = [];
-    private array $globalParameters;
 
     public function __construct(
-        array $initParameters = [],
-        array $allowedSetupInitParameters = self::ALLOWED_SETUP_INIT_PARAMETERS,
+        private array $globalParameters = [],
         private array $allowedRuntimeInitParameters = self::ALLOWED_RUNTIME_INIT_PARAMETERS,
     ) {
-        $this->globalParameters = array_intersect_key($initParameters, $allowedSetupInitParameters);
-        $this->factory = AppBootstrap::createObjectManagerFactory(BP, $this->globalParameters);
-        $this->areaList = $this->factory->create($this->globalParameters)->get(AreaList::class);
+        $factory = AppBootstrap::createObjectManagerFactory(BP, $this->globalParameters);
+        $this->areaList = $factory->create($this->globalParameters)->get(AreaList::class);
     }
 
     /**
@@ -82,10 +76,12 @@ class BootstrapPool
      */
     private function createBootstrap(string $areaCode): AppBootstrap
     {
-        $bootstrap = AppBootstrap::create(BP, $this->globalParameters, $this->factory);
+        $bootstrap = AppBootstrap::create(BP, $this->globalParameters);
         $objectManager = $bootstrap->getObjectManager();
-        $objectManager->get(State::class)->setAreaCode($areaCode);
         $objectManager->configure($objectManager->get(ConfigLoaderInterface::class)->load($areaCode));
+        //ToDo check for missing custom configuration to add
+        // E.G: request/response state, data config...
+        $objectManager->get(State::class)->setAreaCode($areaCode);
 
         return $bootstrap;
     }
