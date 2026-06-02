@@ -33,9 +33,6 @@ class Http implements AppInterface
         private HttpRequest $request,
     ) {}
 
-    /**
-     * @inheritDoc
-     */
     public function launch(): HttpInterface
     {
         $response = $this->handleHead(

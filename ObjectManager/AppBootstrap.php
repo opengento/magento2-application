@@ -23,9 +23,6 @@ use function set_error_handler;
 
 class AppBootstrap extends Bootstrap
 {
-    /**
-     * @inerhitDoc
-     */
     public static function create($rootDir, array $initParams, ?ObjectManagerFactory $factory = null): static
     {
         self::populateAutoloader($rootDir, $initParams);
@@ -33,9 +30,6 @@ class AppBootstrap extends Bootstrap
         return new self($factory ?? self::createObjectManagerFactory($rootDir, $initParams), $rootDir, $initParams);
     }
 
-    /**
-     * @inerhitDoc
-     */
     public static function createObjectManagerFactory($rootDir, array $initParams): AppObjectManagerFactory
     {
         return new AppObjectManagerFactory(
@@ -45,9 +39,6 @@ class AppBootstrap extends Bootstrap
         );
     }
 
-    /**
-     * @inerhitDoc
-     */
     public function run(AppInterface $application): void
     {
         try {
@@ -56,8 +47,7 @@ class AppBootstrap extends Bootstrap
                 set_error_handler([new ErrorHandler(), 'handler']);
                 $this->assertMaintenance();
                 $this->assertInstalled();
-                $response = $application->launch();
-                $response->sendResponse();
+                $application->launch()->sendResponse();
                 Profiler::stop('magento');
             } catch (Exception $e) {
                 Profiler::stop('magento');
@@ -65,11 +55,11 @@ class AppBootstrap extends Bootstrap
                 if (!$application->catchException($this, $e)) {
                     throw $e;
                 }
-            } finally {
-                $this->resetState();
             }
         } catch (Throwable $e) {
             $this->terminate($e);
+        } finally {
+            $this->resetState();
         }
     }
 
