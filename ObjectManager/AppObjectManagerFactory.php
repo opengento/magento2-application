@@ -11,5 +11,6 @@ use Magento\Framework\App\ObjectManagerFactory;
 
 class AppObjectManagerFactory extends ObjectManagerFactory
 {
+    //protected $envFactoryClassName = AppEnvironmentFactory::class;
     protected $_locatorClassName = AppObjectManager::class;
 }
