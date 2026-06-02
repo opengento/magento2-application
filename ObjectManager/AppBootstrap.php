@@ -19,6 +19,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 use function gc_collect_cycles;
+use function set_error_handler;
 
 class AppBootstrap extends Bootstrap
 {
@@ -52,8 +53,7 @@ class AppBootstrap extends Bootstrap
         try {
             try {
                 Profiler::start('magento');
-                $handler = new ErrorHandler();
-                set_error_handler([$handler, 'handler']);
+                set_error_handler([new ErrorHandler(), 'handler']);
                 $this->assertMaintenance();
                 $this->assertInstalled();
                 $response = $application->launch();
