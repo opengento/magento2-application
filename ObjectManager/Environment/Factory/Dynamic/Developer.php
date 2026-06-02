@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-namespace Opengento\Application\ObjectManager\Environment\Factory;
+namespace Opengento\Application\ObjectManager\Environment\Factory\Dynamic;
 
 use Magento\Framework\ObjectManager\Factory\Dynamic\Developer as DynamicDeveloper;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
