@@ -16,6 +16,7 @@ use Magento\Framework\App\HttpRequestInterface;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\Response\HttpInterface;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\AppInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Event\Manager;
@@ -59,7 +60,7 @@ class Http implements AppInterface
         return $this->exceptionHandler->handle($bootstrap, $exception, $this->response, $this->request);
     }
 
-    private function handleResponse(ResultInterface|HttpInterface $result): ResultInterface|HttpInterface
+    private function handleResponse(ResultInterface|HttpInterface|ResponseInterface $result): HttpInterface
     {
         // TODO: Temporary solution until all controllers return ResultInterface (MAGETWO-28359);
         return match (true) {
@@ -69,7 +70,7 @@ class Http implements AppInterface
         };
     }
 
-    private function handleLayoutResult(ResultInterface $result): ResultInterface|HttpInterface
+    private function handleLayoutResult(ResultInterface $result): HttpInterface
     {
         $this->registry->register('use_page_cache_plugin', true, true);
         $result->renderResult($this->response);
@@ -77,7 +78,7 @@ class Http implements AppInterface
         return $this->response;
     }
 
-    private function handleHttpResult(HttpInterface $result): ResultInterface|HttpInterface
+    private function handleHttpResult(HttpInterface $result): HttpInterface
     {
         $this->response->setContent($result->getContent());
         if ($this->response !== $result) { //do not double headers
@@ -92,7 +93,7 @@ class Http implements AppInterface
         if ($request->isHead() && $response->getHttpResponseCode() === 200) {
             $contentLength = mb_strlen($response->getContent(), '8bit');
             $response->clearBody();
-            $response->setHeader('Content-Length', $contentLength);
+            $response->setHeader('Content-Length', (string)$contentLength);
         }
 
         return $response;
