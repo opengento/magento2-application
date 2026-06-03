@@ -13,7 +13,6 @@ use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Framework\ObjectManager\Resetter\ResetterFactory;
 use Magento\Framework\ObjectManager\Resetter\ResetterInterface;
 use Magento\Framework\ObjectManagerInterface;
-use Opengento\Application\ObjectManager\AppObjectManager;
 
 class Compiled extends FactoryCompiled implements ResetAfterRequestInterface
 {
@@ -41,9 +40,6 @@ class Compiled extends FactoryCompiled implements ResetAfterRequestInterface
     public function _resetState(): void
     {
         $this->resetter->_resetState();
-        foreach (AppObjectManager::INSTANCES_TO_UNSET as $type) {
-            unset($this->sharedInstances[$type]);
-        }
     }
 
     public function setObjectManager(ObjectManagerInterface $objectManager): void
