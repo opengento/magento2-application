@@ -1,0 +1,30 @@
+{
+  "\\Magento\\Framework\\View\\Layout\\Builder": {
+    "isBuilt": false
+  },
+  "\\Magento\\Framework\\View\\Page\\Builder": {
+    "isBuilt": false
+  },
+  "\\Magento\\Backend\\Model\\View\\Layout\\Builder": {
+    "isBuilt": false
+  },
+  "\\Magento\\Backend\\Model\\View\\Page\\Builder": {
+    "isBuilt": false
+  },
+  "\\Magento\\Framework\\View\\Page\\Config": {
+    "metadata": {
+      "charset": null,
+      "media_type": null,
+      "content_type": null,
+      "title": null,
+      "description": null,
+      "keywords": null,
+      "robots": null
+    }
+  },
+  "\\Magento\\Framework\\View\\Page\\Title": {
+    "textValue": null,
+    "appendedValues": [],
+    "prependedValues": []
+  }
+}

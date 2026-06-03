@@ -15,6 +15,7 @@ use Magento\Framework\App\State\ReloadProcessorInterface;
 use Magento\Framework\AppInterface;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Framework\Profiler;
+use Opengento\Application\App\Request\HttpRequest;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -47,6 +48,7 @@ class AppBootstrap extends Bootstrap
                 set_error_handler([new ErrorHandler(), 'handler']);
                 $this->assertMaintenance();
                 $this->assertInstalled();
+                $this->getObjectManager()->get(HttpRequest::class)->initFromSuperGlobals();
                 $application->launch()->sendResponse();
                 Profiler::stop('magento');
             } catch (Exception $e) {

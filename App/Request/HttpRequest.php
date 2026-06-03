@@ -12,67 +12,17 @@ use Magento\Framework\App\Request\Http;
 
 class HttpRequest extends Http
 {
-    private bool $initialized = true;
-
     public function _resetState(): void
     {
         parent::_resetState();
-        $this->setEnv(new Parameters());
-        $this->serverParams = new Parameters();
         $this->originalPathInfo = null;
-        $this->initialized = false;
+        $this->beforeForwardInfo = [];
     }
 
-    public function getEnv($name = null, $default = null)
+    public function initFromSuperGlobals(): void
     {
-        if (!$this->initialized) {
-            $this->reset();
-        }
-        return parent::getEnv($name, $default);
-    }
+        $this->_resetState();
 
-    public function getQuery($name = null, $default = null)
-    {
-        if (!$this->initialized) {
-            $this->reset();
-        }
-        return parent::getQuery($name, $default);
-    }
-
-    public function getPost($name = null, $default = null)
-    {
-        if (!$this->initialized) {
-            $this->reset();
-        }
-        return parent::getPost($name, $default);
-    }
-
-    public function getCookie($name = null, $default = null): ?string
-    {
-        if (!$this->initialized) {
-            $this->reset();
-        }
-        return parent::getCookie($name, $default);
-    }
-
-    public function getFiles($name = null, $default = null)
-    {
-        if (!$this->initialized) {
-            $this->reset();
-        }
-        return parent::getFiles($name, $default);
-    }
-
-    public function getServer($name = null, $default = null)
-    {
-        if (!$this->initialized) {
-            $this->reset();
-        }
-        return parent::getServer($name, $default);
-    }
-
-    private function reset(): void
-    {
         $this->setEnv(new Parameters($_ENV));
 
         if ($_GET) {
@@ -91,7 +41,5 @@ class HttpRequest extends Http
         }
 
         $this->setServer(new Parameters($_SERVER));
-
-        $this->initialized = true;
     }
 }

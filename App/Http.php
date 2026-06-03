@@ -29,8 +29,8 @@ class Http implements AppInterface
         private Manager $eventManager,
         private Registry $registry,
         private ExceptionHandlerInterface $exceptionHandler,
-        private HttpResponse $response,
         private HttpRequest $request,
+        private HttpResponse $response,
     ) {}
 
     public function launch(): HttpInterface

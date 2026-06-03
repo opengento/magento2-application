@@ -29,4 +29,15 @@
     <preference for="Magento\Framework\App\RequestContentInterface" type="Opengento\Application\App\Request\HttpRequest"/>
     <preference for="Magento\Framework\App\Request\Http" type="Opengento\Application\App\Request\HttpRequest"/>
     <preference for="Magento\Framework\HTTP\PhpEnvironment\Request" type="Opengento\Application\App\Request\HttpRequest"/>
+    <!-- Ensure the layout is a new object when we create a Page or Layout result from the factory -->
+    <type name="Magento\Framework\View\Result\Page">
+        <arguments>
+            <argument name="isIsolated" xsi:type="boolean">true</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Framework\View\Result\Layout">
+        <arguments>
+            <argument name="isIsolated" xsi:type="boolean">true</argument>
+        </arguments>
+    </type>
 </config>
