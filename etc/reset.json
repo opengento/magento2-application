@@ -20,11 +20,22 @@
       "description": null,
       "keywords": null,
       "robots": null
-    }
+    },
+    "elements": [],
+    "includes": null,
+    "pageLayout": null
   },
   "\\Magento\\Framework\\View\\Page\\Title": {
     "textValue": null,
     "appendedValues": [],
     "prependedValues": []
+  },
+  "\\Magento\\Framework\\View\\Layout": {
+    "_update": null,
+    "_blocks": [],
+    "_output": [],
+    "sharedBlocks": [],
+    "_renderElementCache": [],
+    "_renderers": []
   }
 }
