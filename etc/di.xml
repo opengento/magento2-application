@@ -11,7 +11,7 @@
             <argument name="processors" xsi:type="array">
                 <!-- Note: This needs to be first because it has DeploymentConfig which others require -->
                 <item name="000_Magento::config" xsi:type="object">Magento\Framework\App\State\ReloadProcessor</item>
-                <item name="Opengento_Application::config" xsi:type="object">Opengento\Application\App\ReloadProcessor</item>
+                <item name="Opengento_Application::config" xsi:type="object">Opengento\Application\App\State\ReloadProcessor</item>
                 <item name="GraphQl::QueryParser" xsi:type="object">Magento\Framework\GraphQl\Query\QueryParser</item>
             </argument>
         </arguments>
@@ -22,4 +22,11 @@
             <argument name="publisher" xsi:type="object">developerPublisher</argument>
         </arguments>
     </type>
+    <!-- Override Stateful Objects by stateless ones -->
+    <preference for="Magento\Framework\App\RequestInterface" type="Opengento\Application\App\Request\HttpRequest"/>
+    <preference for="Magento\Framework\App\PlainTextRequestInterface" type="Opengento\Application\App\Request\HttpRequest"/>
+    <preference for="Magento\Framework\App\RequestSafetyInterface" type="Opengento\Application\App\Request\HttpRequest"/>
+    <preference for="Magento\Framework\App\RequestContentInterface" type="Opengento\Application\App\Request\HttpRequest"/>
+    <preference for="Magento\Framework\App\Request\Http" type="Opengento\Application\App\Request\HttpRequest"/>
+    <preference for="Magento\Framework\HTTP\PhpEnvironment\Request" type="Opengento\Application\App\Request\HttpRequest"/>
 </config>

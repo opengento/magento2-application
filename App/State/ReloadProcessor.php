@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-namespace Opengento\Application\App;
+namespace Opengento\Application\App\State;
 
 use Magento\Framework\App\State\ReloadProcessorInterface;
 
