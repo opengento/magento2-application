@@ -40,4 +40,8 @@
             <argument name="isIsolated" xsi:type="boolean">true</argument>
         </arguments>
     </type>
+    <!-- Ensure the sessions are properly started and closed on each run -->
+    <type name="Magento\Framework\Session\SessionManager">
+        <plugin name="Opengento_Application::register_started_session" type="Opengento\Application\Plugin\RegisterStartedSession"/>
+    </type>
 </config>

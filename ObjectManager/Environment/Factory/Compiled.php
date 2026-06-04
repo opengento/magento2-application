@@ -17,7 +17,6 @@ use Magento\Framework\ObjectManagerInterface;
 class Compiled extends FactoryCompiled implements ResetAfterRequestInterface
 {
     private ResetterInterface $resetter;
-    private array $sharedInstances;
 
     public function __construct(
         ConfigInterface $config,
@@ -25,7 +24,6 @@ class Compiled extends FactoryCompiled implements ResetAfterRequestInterface
         array $globalArguments = []
     ) {
         $this->resetter = ResetterFactory::create();
-        $this->sharedInstances = &$sharedInstances;
         parent::__construct($config, $sharedInstances, $globalArguments);
     }
 

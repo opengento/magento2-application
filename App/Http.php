@@ -21,6 +21,7 @@ use Magento\Framework\AppInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Event\Manager;
 use Magento\Framework\Registry;
+use Opengento\Application\App\Session\SessionRegistry;
 
 class Http implements AppInterface
 {
@@ -28,6 +29,7 @@ class Http implements AppInterface
         private FrontController $frontController,
         private Manager $eventManager,
         private Registry $registry,
+        private SessionRegistry $sessionRegistry,
         private ExceptionHandlerInterface $exceptionHandler,
         private HttpRequest $request,
         private HttpResponse $response,
@@ -35,6 +37,8 @@ class Http implements AppInterface
 
     public function launch(): HttpInterface
     {
+        $this->sessionRegistry->startSessions();
+
         $response = $this->handleHead(
             $this->request,
             $this->handleResponse($this->frontController->dispatch($this->request))
@@ -49,9 +53,6 @@ class Http implements AppInterface
         return $response;
     }
 
-    /**
-     * @inheritdoc
-     */
     public function catchException(Bootstrap $bootstrap, Exception $exception): bool
     {
         return $this->exceptionHandler->handle($bootstrap, $exception, $this->response, $this->request);
