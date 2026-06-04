@@ -9,9 +9,39 @@ namespace Opengento\Application\App\Request;
 
 use Laminas\Stdlib\Parameters;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\App\Request\PathInfo;
+use Magento\Framework\App\Request\PathInfoProcessorInterface;
+use Magento\Framework\App\Route\ConfigInterface;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\Stdlib\Cookie\CookieReaderInterface;
+use Magento\Framework\Stdlib\StringUtils;
 
 class HttpRequest extends Http
 {
+    public function __construct(
+        CookieReaderInterface $cookieReader,
+        StringUtils $converter,
+        ConfigInterface $routeConfig,
+        PathInfoProcessorInterface $pathInfoProcessor,
+        ObjectManagerInterface $objectManager,
+        RequestRegistry  $requestRegistry,
+        $uri = null,
+        $directFrontNames = [],
+        ?PathInfo $pathInfoService = null
+    ) {
+        parent::__construct(
+            $cookieReader,
+            $converter,
+            $routeConfig,
+            $pathInfoProcessor,
+            $objectManager,
+            $uri,
+            $directFrontNames,
+            $pathInfoService
+        );
+        $requestRegistry->add($this);
+    }
+
     public function _resetState(): void
     {
         parent::_resetState();

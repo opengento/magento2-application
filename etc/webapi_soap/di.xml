@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © OpenGento, All rights reserved.
+ * See LICENSE bundled with this library for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Override Stateful Objects by stateless ones -->
+    <preference for="Magento\Framework\Webapi\Request" type="Opengento\Application\App\Request\WebapiRequest"/>
+    <preference for="Magento\Framework\Webapi\Rest\Response\RendererFactory" type="Opengento\Application\App\Response\RestRendererFactory"/>
+    <!-- Ensure the XML Generator is fresh when we render the SOAP WSDL List output -->
+    <type name="Magento\Framework\Webapi\Rest\Response\Renderer\Xml" shared="false"/>
+    <type name="Magento\Framework\Xml\Generator" shared="false"/>
+</config>
