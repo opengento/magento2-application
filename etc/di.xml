@@ -11,7 +11,7 @@
             <argument name="processors" xsi:type="array">
                 <!-- Note: This needs to be first because it has DeploymentConfig which others require -->
                 <item name="000_Magento::config" xsi:type="object">Magento\Framework\App\State\ReloadProcessor</item>
-                <item name="Opengento_Application::config" xsi:type="object">Opengento\Application\App\State\ReloadProcessor</item>
+                <item name="Opengento_Application::reload" xsi:type="object">Opengento\Application\App\State\ReloadProcessor</item>
                 <item name="GraphQl::QueryParser" xsi:type="object">Magento\Framework\GraphQl\Query\QueryParser</item>
             </argument>
         </arguments>
@@ -44,4 +44,6 @@
     <type name="Magento\Framework\Session\SessionManager">
         <plugin name="Opengento_Application::register_started_session" type="Opengento\Application\Plugin\RegisterStartedSession"/>
     </type>
+    <!-- Reset data config on requests run -->
+    <preference for="Magento\Eav\Model\Config" type="Opengento\Application\Model\EavConfig"/>
 </config>
