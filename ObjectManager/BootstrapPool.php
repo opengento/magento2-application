@@ -93,9 +93,10 @@ class BootstrapPool
             return Area::AREA_GLOBAL;
         }
         if (str_starts_with($pathInfo, '/static.php?')) {
-            $pathInfo = $get['resource'] ?? $pathInfo;
-        } elseif (preg_match('/^\/static\/(version\d*\/)?(.*)$/', $pathInfo, $matches)) {
-            $pathInfo = $matches[2] ?? $matches[1] ?? $matches[0] ?? $pathInfo;
+            return strtok(trim($get['resource'] ?? $pathInfo, '/'), '/');
+        }
+        if (preg_match('/^\/static\/(version\d*\/)?(.*)$/', $pathInfo, $matches)) {
+            return strtok(trim($matches[2] ?? $matches[1] ?? $matches[0] ?? $pathInfo, '/'), '/');
         }
 
         return $this->areaList->getCodeByFrontName(strtok(trim($pathInfo, '/'), '/'));
