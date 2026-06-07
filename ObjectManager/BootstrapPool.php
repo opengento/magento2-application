@@ -78,10 +78,8 @@ class BootstrapPool
     {
         $bootstrap = AppBootstrap::create(BP, $this->globalParameters, $this->factory);
         $objectManager = $bootstrap->getObjectManager();
-        $objectManager->configure($objectManager->get(ConfigLoaderInterface::class)->load($areaCode));
-        //ToDo check for missing custom configuration to add
-        // E.G: request/response state, data config...
         $objectManager->get(State::class)->setAreaCode($areaCode);
+        $objectManager->configure($objectManager->get(ConfigLoaderInterface::class)->load($areaCode));
 
         return $bootstrap;
     }

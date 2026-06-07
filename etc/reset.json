@@ -1,4 +1,7 @@
 {
+  "\\Magento\\Framework\\App\\View": {
+    "_isLayoutLoaded": false
+  },
   "\\Magento\\Framework\\View\\Layout\\Builder": {
     "isBuilt": false
   },
@@ -43,7 +46,37 @@
     "summeryCount": null,
     "_data": []
   },
+  "\\Magento\\Tax\\Plugin\\Checkout\\CustomerData\\Cart": {
+    "quote": null,
+    "totals": null
+  },
   "\\Magento\\Quote\\Model\\Quote\\TotalsCollectorList": {
     "totalCollector": null
+  },
+  "\\Magento\\Checkout\\Model\\Cart": {
+    "_data": [],
+    "_productIds": null,
+    "_summaryQty": null
+  },
+  "\\Magento\\Wishlist\\Block\\AbstractBlock": {
+    "_collection": null,
+    "_wishlist": null
+  },
+  "\\Magento\\Wishlist\\Model\\Wishlist": {
+    "_data": [],
+    "_itemCollection": null,
+    "_store": null,
+    "_storeIds": null
+  },
+  "\\Magento\\Wishlist\\Helper\\Data": {
+    "_currentCustomer": null,
+    "_wishlist": null,
+    "_wishlistItemCollection": null
+  },
+  "\\Magento\\Wishlist\\Controller\\WishlistProvider": {
+    "wishlist": null
+  },
+  "\\Magento\\Wishlist\\Controller\\Shared\\WishlistProvider": {
+    "wishlist": null
   }
 }
