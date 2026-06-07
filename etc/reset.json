@@ -78,5 +78,18 @@
   },
   "\\Magento\\Wishlist\\Controller\\Shared\\WishlistProvider": {
     "wishlist": null
+  },
+  "\\Magento\\Catalog\\Block\\Product\\Compare\\ListCompare": {
+    "_items": null,
+    "_attributes": null,
+    "_customerId": null
+  },
+  "\\Magento\\Catalog\\Controller\\Product\\Compare": {
+    "_customerId": null
+  },
+  "\\Magento\\Catalog\\Helper\\Product\\Compare": {
+    "_itemCollection": null,
+    "_customerId": null,
+    "_allowUsedFlat": true
   }
 }

@@ -22,6 +22,7 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Event\Manager;
 use Magento\Framework\Registry;
 use Opengento\Application\App\Session\SessionRegistry;
+use Opengento\Application\App\State\InitProcessor;
 
 class Http implements AppInterface
 {
@@ -29,7 +30,7 @@ class Http implements AppInterface
         private FrontController $frontController,
         private Manager $eventManager,
         private Registry $registry,
-        private SessionRegistry $sessionRegistry,
+        private InitProcessor $initProcessor,
         private ExceptionHandlerInterface $exceptionHandler,
         private HttpRequest $request,
         private HttpResponse $response,
@@ -37,7 +38,7 @@ class Http implements AppInterface
 
     public function launch(): HttpInterface
     {
-        $this->sessionRegistry->startSessions();
+        $this->initProcessor->init();
 
         $response = $this->handleHead(
             $this->request,

@@ -46,4 +46,5 @@
     </type>
     <!-- Reset data config on requests run -->
     <preference for="Magento\Eav\Model\Config" type="Opengento\Application\Model\EavConfig"/>
+    <preference for="Magento\Customer\Model\Visitor" type="Opengento\Application\Model\CustomerVisitor"/>
 </config>
