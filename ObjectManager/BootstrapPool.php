@@ -12,15 +12,19 @@ use Magento\Framework\App\AreaList;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManager\ConfigLoaderInterface;
+use Magento\Framework\ObjectManagerInterface;
+use Opengento\Application\App\Request\RequestRegistry;
 
 use function array_intersect_key;
 use function array_replace;
+use function parse_url;
 use function preg_match;
 use function str_starts_with;
 use function strtok;
 use function trim;
 
 use const BP;
+use const PHP_URL_PATH;
 
 class BootstrapPool
 {
@@ -38,7 +42,7 @@ class BootstrapPool
         //'MAGE_CONFIG_FILE' => null,//ToDo
     ];
 
-    private AreaList $areaList;
+    private ObjectManagerInterface $objectManager;
     private AppObjectManagerFactory $factory;
     private array $bootstraps = [];
 
@@ -47,7 +51,7 @@ class BootstrapPool
         private array $allowedRuntimeInitParameters = self::ALLOWED_RUNTIME_INIT_PARAMETERS,
     ) {
         $this->factory = AppBootstrap::createObjectManagerFactory(BP, $this->globalParameters);
-        $this->areaList = $this->factory->create($this->globalParameters)->get(AreaList::class);
+        $this->objectManager = $this->factory->create($this->globalParameters);
     }
 
     /**
@@ -86,7 +90,8 @@ class BootstrapPool
 
     private function resolveAreaCode(array $server, array $get): string
     {
-        $pathInfo = $server['REQUEST_URI'];
+        // REQUEST_URI includes the query string: "/graphql?query=..." must resolve as "/graphql".
+        $pathInfo = (string)parse_url($server['REQUEST_URI'], PHP_URL_PATH);
         if (str_starts_with($pathInfo, '/get.php/') || str_starts_with($pathInfo, '/media/')) {
             return Area::AREA_GLOBAL;
         }
@@ -97,6 +102,18 @@ class BootstrapPool
             return strtok(trim($matches[2] ?? $matches[1] ?? $matches[0] ?? $pathInfo, '/'), '/');
         }
 
-        return $this->areaList->getCodeByFrontName(strtok(trim($pathInfo, '/'), '/'));
+        // AreaList::getCodeByFrontName() stores the resolved admin front name on its first call,
+        // and FrontNameResolver::getFrontName(true) returns false when the host is not the backend
+        // host. A fresh AreaList per request keeps that host check per request. The resolver reads
+        // the host from the Request objects, which run() fills only after this lookup, so they are
+        // filled here first. strtok() returns false for "/" and would match that false, so the
+        // front name is cast to string.
+        $this->objectManager->get(RequestRegistry::class)->initFromSuperGlobals();
+        foreach ($this->bootstraps as $bootstrap) {
+            $bootstrap->getObjectManager()->get(RequestRegistry::class)->initFromSuperGlobals();
+        }
+
+        return $this->objectManager->create(AreaList::class)
+            ->getCodeByFrontName((string)strtok(trim($pathInfo, '/'), '/'));
     }
 }
