@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © OpenGento, All rights reserved.
+ * See LICENSE bundled with this library for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!--
+        Checkout-coupled worker-mode guards (ported from MageOS_WorkerMode "Group B"). These depend on
+        Magento_Checkout / Quote / Customer, so unlike the rest of this module they are NOT generic
+        bootstrap concerns — their proper long-term home is a downstream Magento-scoped module. Kept here
+        so a Hyvä/commerce store runs checkout correctly under worker mode; to be resolved with the maintainer.
+    -->
+    <type name="Magento\Checkout\Block\Registration">
+        <plugin name="Opengento_Application::checkout_registration_guard"
+                type="Opengento\Application\Plugin\Checkout\Block\RegistrationPlugin"/>
+    </type>
+    <type name="Magento\Checkout\Model\DefaultConfigProvider">
+        <plugin name="Opengento_Application::checkout_config_session_guard"
+                type="Opengento\Application\Plugin\Checkout\Model\DefaultConfigProviderPlugin"/>
+    </type>
+    <type name="Magento\Checkout\Model\Session">
+        <plugin name="Opengento_Application::checkout_session_lock_wait_guard"
+                type="Opengento\Application\Plugin\Checkout\Model\CheckoutSessionPlugin"/>
+        <plugin name="Opengento_Application::checkout_preserve_order_data"
+                type="Opengento\Application\Plugin\Checkout\Model\Session\PreserveOrderDataPlugin"/>
+    </type>
+</config>

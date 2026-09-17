@@ -11,9 +11,9 @@ use Magento\Framework\ObjectManager\ConfigInterface;
 use Magento\Framework\ObjectManager\DefinitionInterface;
 use Magento\Framework\ObjectManager\Factory\Dynamic\Developer as DynamicDeveloper;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
-use Magento\Framework\ObjectManager\Resetter\ResetterFactory;
 use Magento\Framework\ObjectManager\Resetter\ResetterInterface;
 use Magento\Framework\ObjectManagerInterface;
+use Opengento\Application\ObjectManager\Resetter\Resetter;
 
 class Developer extends DynamicDeveloper implements ResetAfterRequestInterface
 {
@@ -25,7 +25,9 @@ class Developer extends DynamicDeveloper implements ResetAfterRequestInterface
         ?DefinitionInterface $definitions = null,
         array $globalArguments = []
     ) {
-        $this->resetter = ResetterFactory::create();
+        // Use the module's Resetter so reset.json entries applied by reflection also work on PHP 8.4
+        // lazy-ghost Interceptors (the framework Resetter's reflection write silently fails on them).
+        $this->resetter = new Resetter();
         parent::__construct($config, $objectManager, $definitions, $globalArguments);
     }
 

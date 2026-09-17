@@ -10,9 +10,9 @@ namespace Opengento\Application\ObjectManager\Environment\Factory;
 use Magento\Framework\ObjectManager\ConfigInterface;
 use Magento\Framework\ObjectManager\Factory\Compiled as FactoryCompiled;
 use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
-use Magento\Framework\ObjectManager\Resetter\ResetterFactory;
 use Magento\Framework\ObjectManager\Resetter\ResetterInterface;
 use Magento\Framework\ObjectManagerInterface;
+use Opengento\Application\ObjectManager\Resetter\Resetter;
 
 class Compiled extends FactoryCompiled implements ResetAfterRequestInterface
 {
@@ -23,7 +23,9 @@ class Compiled extends FactoryCompiled implements ResetAfterRequestInterface
         array &$sharedInstances = [],
         array $globalArguments = []
     ) {
-        $this->resetter = ResetterFactory::create();
+        // Use the module's Resetter so reset.json entries applied by reflection also work on PHP 8.4
+        // lazy-ghost Interceptors (the framework Resetter's reflection write silently fails on them).
+        $this->resetter = new Resetter();
         parent::__construct($config, $sharedInstances, $globalArguments);
     }
 

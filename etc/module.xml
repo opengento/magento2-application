@@ -6,5 +6,17 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="Opengento_Application"/>
+    <module name="Opengento_Application">
+        <sequence>
+            <!-- Framework-adjacent core modules whose classes this module extends, plugs or resets -->
+            <module name="Magento_Backend"/>       <!-- StateReset: Widget\Context/ButtonList; Backend view builders in reset.json -->
+            <module name="Magento_Catalog"/>       <!-- stock composer requirement; catalog session/compare resets -->
+            <module name="Magento_Customer"/>      <!-- CustomerVisitor preference (stock opengento left this undeclared) -->
+            <module name="Magento_Eav"/>           <!-- EavConfig preference (stock opengento left this undeclared) -->
+            <module name="Magento_MediaStorage"/>  <!-- StaticResource response argument -->
+            <!-- Checkout-coupled worker-mode guards (Plugin/Checkout/* + etc/frontend/di.xml) — under maintainer discussion -->
+            <module name="Magento_Checkout"/>
+            <module name="Magento_Quote"/>
+        </sequence>
+    </module>
 </config>

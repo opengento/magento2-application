@@ -43,6 +43,8 @@ This module allows the application to reuse the bootstrap and reset its state af
 
 The Application Boostrap can be used to launch the application with different loop HTTP server like FrankenPHP, Swoole, ReactPHP or via Fiber.
 
+State left behind by one request is reset before the next on a persistent worker. For how that works — and the PHP 8.4 lazy-ghost pitfall when extending the reset surface — see [Resetting state between requests](./docs/state-reset.md).
+
 ## Support
 
 Raise a new [request](https://github.com/opengento/magento2-application/issues) to the issue tracker.

@@ -12,6 +12,12 @@
                 <!-- Note: This needs to be first because it has DeploymentConfig which others require -->
                 <item name="000_Magento::config" xsi:type="object">Magento\Framework\App\State\ReloadProcessor</item>
                 <item name="Opengento_Application::reload" xsi:type="object">Opengento\Application\App\State\ReloadProcessor</item>
+                <!--
+                    Surgical between-request resets that reset.json cannot express (a sub-key of an array
+                    property and a nested object's property): Area::_loadedParts['design'] and the admin
+                    Widget\Context ButtonList.
+                -->
+                <item name="Opengento_Application::state_reset" xsi:type="object">Opengento\Application\Model\Reset\StateReset</item>
                 <item name="GraphQl::QueryParser" xsi:type="object">Magento\Framework\GraphQl\Query\QueryParser</item>
             </argument>
         </arguments>
@@ -29,20 +35,59 @@
     <preference for="Magento\Framework\App\RequestContentInterface" type="Opengento\Application\App\Request\HttpRequest"/>
     <preference for="Magento\Framework\App\Request\Http" type="Opengento\Application\App\Request\HttpRequest"/>
     <preference for="Magento\Framework\HTTP\PhpEnvironment\Request" type="Opengento\Application\App\Request\HttpRequest"/>
-    <!-- Ensure the layout is a new object when we create a Page or Layout result from the factory -->
+    <!--
+        Share the layout instance across the request instead of isolating a private copy per Page/Layout
+        result. The reset.json + Resetter mechanism already resets layout state between requests, so
+        isolation is unnecessary; isolation also breaks Hyvä's ProductListItem view model, which holds the
+        shared LayoutInterface and calls getBlock() on it (otherwise the blocks live in the isolated copy).
+    -->
     <type name="Magento\Framework\View\Result\Page">
         <arguments>
-            <argument name="isIsolated" xsi:type="boolean">true</argument>
+            <argument name="isIsolated" xsi:type="boolean">false</argument>
         </arguments>
     </type>
     <type name="Magento\Framework\View\Result\Layout">
         <arguments>
-            <argument name="isIsolated" xsi:type="boolean">true</argument>
+            <argument name="isIsolated" xsi:type="boolean">false</argument>
         </arguments>
     </type>
-    <!-- Ensure the sessions are properly started and closed on each run -->
+    <!--
+        The pricing render's private layout bakes the CURRENT page's cacheability into its constructor
+        ($layoutFactory->create(['cacheable' => $generalLayout->isCacheable()])) — core relies on this
+        object being constructed fresh every request. As a persistent-worker singleton, the first
+        price-rendering page decides `cacheable` for the worker's lifetime; once a cacheable page bakes
+        `true`, every later NON-cacheable page that renders a price (cart, account, checkout success)
+        wrongly depersonalizes mid-render (session_write_close + clearStorage on all sessions) via the
+        depersonalize plugins firing against this private layout. shared="false" restores the
+        constructed-per-request contract: each Pricing\Render block (itself per-request) gets a fresh
+        instance that reads the current page's isCacheable().
+    -->
+    <type name="Magento\Framework\Pricing\Render\Layout" shared="false"/>
+    <!--
+        (Re)start each session lazily on first access this request (StartSessionOnAccess), and register
+        every session that starts so it can be committed (writeClose) at the end of the request
+        (RegisterStartedSession → SessionRegistry → ReloadProcessor::reloadState()).
+    -->
     <type name="Magento\Framework\Session\SessionManager">
+        <plugin name="Opengento_Application::start_session_on_access" type="Opengento\Application\Plugin\StartSessionOnAccess"/>
         <plugin name="Opengento_Application::register_started_session" type="Opengento\Application\Plugin\RegisterStartedSession"/>
+    </type>
+    <!--
+        Re-assert session.name on every start() so an admin request's `ini session.name='admin'` cannot
+        leak into a later storefront/REST session on the same worker (which would read the wrong cookie).
+    -->
+    <preference for="Magento\Framework\Session\Config" type="Opengento\Application\Session\Config"/>
+    <!--
+        Self-heal for sessions whose owners access $this->storage DIRECTLY (bypassing every SessionManager
+        entry point the lazy-start plugin hooks) — e.g. TwoFactorAuth's TfaSession isGranted()/grantAccess().
+        Re-binds an empty (between-request-reset) storage to the live $_SESSION namespace on access.
+        Covers BASE-storage sessions only; subclassed storages (Customer) are handled at the
+        SessionManager level by StartSessionOnAccess.
+    -->
+    <preference for="Magento\Framework\Session\Storage" type="Opengento\Application\Session\Storage"/>
+    <!-- Keep <html lang> present after reset.json clears Page\Config::elements (locale-aware JS needs it) -->
+    <type name="Magento\Framework\View\Page\Config">
+        <plugin name="Opengento_Application::ensure_html_lang_attribute" type="Opengento\Application\Plugin\EnsureHtmlLangAttribute"/>
     </type>
     <!-- Reset data config on requests run -->
     <preference for="Magento\Eav\Model\Config" type="Opengento\Application\Model\EavConfig"/>

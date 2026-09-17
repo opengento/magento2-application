@@ -15,8 +15,13 @@
         "php": "^8.3",
         "psr/log": "*",
         "magento/framework": "*",
+        "magento/module-backend": "*",
         "magento/module-catalog": "*",
-        "magento/module-media-storage": "*"
+        "magento/module-checkout": "*",
+        "magento/module-customer": "*",
+        "magento/module-eav": "*",
+        "magento/module-media-storage": "*",
+        "magento/module-quote": "*"
     },
     "require-dev": {
         "magento/magento-coding-standard": "^33",

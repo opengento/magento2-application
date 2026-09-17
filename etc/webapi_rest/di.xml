@@ -14,4 +14,14 @@
     <!-- Ensure the XML Generator is fresh when we render the REST webapi output -->
     <type name="Magento\Framework\Webapi\Rest\Response\Renderer\Xml" shared="false"/>
     <type name="Magento\Framework\Xml\Generator" shared="false"/>
+    <!--
+        Commit the request's sessions before the REST response is sent, so a storefront request that
+        immediately reads a value the REST call wrote (e.g. a last order id) sees it. sortOrder is high
+        so it runs after all other afterLaunch processing.
+    -->
+    <type name="Opengento\Application\App\Http">
+        <plugin name="Opengento_Application::commit_sessions_before_response"
+                type="Opengento\Application\Plugin\CommitSessionsBeforeResponse"
+                sortOrder="10000"/>
+    </type>
 </config>

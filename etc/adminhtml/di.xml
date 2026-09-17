@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © OpenGento, All rights reserved.
+ * See LICENSE bundled with this library for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!--
+        Commit the admin session before the login 302 is sent, so a second worker handling the follow-up
+        GET sees the freshly regenerated session instead of bouncing the admin back to the login screen.
+        sortOrder is high so it runs after all other afterLaunch processing (all session writes done).
+    -->
+    <type name="Opengento\Application\App\Http">
+        <plugin name="Opengento_Application::commit_sessions_before_response"
+                type="Opengento\Application\Plugin\CommitSessionsBeforeResponse"
+                sortOrder="10000"/>
+    </type>
+</config>

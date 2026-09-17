@@ -39,7 +39,9 @@
     "_output": [],
     "sharedBlocks": [],
     "_renderElementCache": [],
-    "_renderers": []
+    "_renderers": [],
+    "_xml": null,
+    "readerContext": null
   },
   "\\Magento\\Checkout\\CustomerData\\Cart": {
     "quote": null,
@@ -91,5 +93,58 @@
     "_itemCollection": null,
     "_customerId": null,
     "_allowUsedFlat": true
+  },
+  "\\Hyva\\Theme\\ViewModel\\HyvaCsp": {
+    "memoizedPolicies": null,
+    "memoizedAreaCode": null
+  },
+  "\\Hyva\\GraphqlTokens\\CustomerData\\CartPlugin": {
+    "quote": null
+  },
+  "\\Magento\\Theme\\Model\\View\\Design": {
+    "_area": null,
+    "_theme": null
+  },
+  "\\Magento\\Framework\\View\\Layout\\ScheduledStructure\\Helper": {
+    "counter": 0
+  },
+  "\\Magento\\Framework\\View\\Layout\\ScheduledStructure": {
+    "scheduledStructure": [],
+    "scheduledData": [],
+    "scheduledElements": [],
+    "scheduledMoves": [],
+    "scheduledRemoves": [],
+    "scheduledPaths": [],
+    "elementsToSort": [],
+    "brokenParent": []
+  },
+  "\\Magento\\Framework\\View\\Asset\\GroupedCollection": {
+    "assets": [],
+    "groups": []
+  },
+  "\\Magento\\Csp\\Helper\\CspNonceProvider": {
+    "nonce": ""
+  },
+  "\\Magento\\Csp\\Model\\Collector\\DynamicCollector": {
+    "added": []
+  },
+  "\\Magento\\Framework\\View\\Design\\Theme\\FlyweightFactory": {
+    "themes": [],
+    "themesByPath": []
+  },
+  "\\Magento\\Webapi\\Controller\\Rest\\InputParamsResolver": {
+    "route": null
+  },
+  "\\Magento\\Framework\\View\\Element\\Template\\File\\Resolver": {
+    "_templateFilesMap": []
+  },
+  "\\Magento\\Framework\\View\\Page\\Layout\\Reader": {
+    "pageLayoutMerge": null
+  },
+  "\\Magento\\Security\\Model\\AdminSessionsManager": {
+    "currentSession": null
+  },
+  "\\MageOS\\Widgetkit\\Block\\Widgets\\ProductWidget": {
+    "productItemLayout": null
   }
 }

@@ -9,6 +9,7 @@ namespace Opengento\Application\ObjectManager;
 
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManager\ConfigLoaderInterface;
@@ -57,6 +58,10 @@ class BootstrapPool
     {
         $areaCode = $this->resolveAreaCode($server, $get);
         $bootstrap = $this->bootstraps[$areaCode] ??= $this->createBootstrap($areaCode);
+        // Each AppBootstrap owns its own area ObjectManager, but ObjectManager::$_instance is a static
+        // overwritten by whichever area booted last. Restore it to the OM that handles this request so
+        // every getInstance() call resolves against the correct area.
+        ObjectManager::setInstance($bootstrap->getObjectManager());
         // Ensure the server arguments are set with the current context
         $bootstrap->getObjectManager()->configure(
             [
@@ -97,6 +102,6 @@ class BootstrapPool
             return strtok(trim($matches[2] ?? $matches[1] ?? $matches[0] ?? $pathInfo, '/'), '/');
         }
 
-        return $this->areaList->getCodeByFrontName(strtok(trim($pathInfo, '/'), '/'));
+        return $this->areaList->getCodeByFrontName((string)strtok(trim($pathInfo, '/'), '/'));
     }
 }

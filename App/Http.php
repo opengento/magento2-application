@@ -21,6 +21,8 @@ use Magento\Framework\AppInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Event\Manager;
 use Magento\Framework\Registry;
+use Magento\Framework\Webapi\Rest\Response as RestResponse;
+use Opengento\Application\App\Session\SessionRegistry;
 use Opengento\Application\App\State\InitProcessor;
 
 class Http implements AppInterface
@@ -78,6 +80,13 @@ class Http implements AppInterface
 
     private function handleHttpResult(HttpInterface $result): HttpInterface
     {
+        // A REST response that caught an exception via setException() has not rendered its body yet:
+        // getContent() would return an empty string, producing a 200 OK with no body. Hand the REST
+        // response back so AppBootstrap calls sendResponse() on it, rendering the JSON error and code.
+        if ($result instanceof RestResponse && $result->isException()) {
+            return $result;
+        }
+
         $this->response->setContent($result->getContent());
         if ($this->response !== $result) { //do not double headers
             $this->response->getHeaders()?->addHeaders($result->getHeaders());
