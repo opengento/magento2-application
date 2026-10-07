@@ -14,6 +14,7 @@ use Magento\Framework\App\ExceptionHandlerInterface;
 use Magento\Framework\App\FrontControllerInterface as FrontController;
 use Magento\Framework\App\HttpRequestInterface;
 use Magento\Framework\App\Request\Http as HttpRequest;
+use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\Response\HttpFactory as HttpResponseFactory;
 use Magento\Framework\App\Response\HttpInterface;
 use Magento\Framework\App\ResponseInterface;
@@ -33,6 +34,7 @@ class Http implements AppInterface
         private ExceptionHandlerInterface $exceptionHandler,
         private HttpRequest $request,
         private HttpResponseFactory $responseFactory,
+        private HttpResponse $response,
     ) {}
 
     public function launch(): HttpInterface
@@ -70,11 +72,14 @@ class Http implements AppInterface
 
     private function handleLayoutResult(ResultInterface $result): HttpInterface
     {
-        $response = $this->responseFactory->create();
+        // Render into the shared response: Magento's PageCache LayoutPlugin writes
+        // Cache-Control/X-Magento-Tags to the DI-shared response, so a fresh instance
+        // loses them and every page becomes uncacheable. The shared response is
+        // reset after each request by ResetAfterRequestInterface::_resetState().
         $this->registry->register('use_page_cache_plugin', true, true);
-        $result->renderResult($response);
+        $result->renderResult($this->response);
 
-        return $response;
+        return $this->response;
     }
 
     private function handleHead(HttpRequestInterface $request, HttpInterface $response): HttpInterface
