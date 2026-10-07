@@ -14,7 +14,7 @@ use Magento\Framework\App\ExceptionHandlerInterface;
 use Magento\Framework\App\FrontControllerInterface as FrontController;
 use Magento\Framework\App\HttpRequestInterface;
 use Magento\Framework\App\Request\Http as HttpRequest;
-use Magento\Framework\App\Response\HttpFactory as HttpResponseFactory;
+use Magento\Framework\App\Response\Http as HttpResponse;
 use Magento\Framework\App\Response\HttpInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\AppInterface;
@@ -32,7 +32,7 @@ class Http implements AppInterface
         private InitProcessor $initProcessor,
         private ExceptionHandlerInterface $exceptionHandler,
         private HttpRequest $request,
-        private HttpResponseFactory $responseFactory,
+        private HttpResponse $response,
     ) {}
 
     public function launch(): HttpInterface
@@ -55,7 +55,7 @@ class Http implements AppInterface
 
     public function catchException(Bootstrap $bootstrap, Exception $exception): bool
     {
-        return $this->exceptionHandler->handle($bootstrap, $exception, $this->responseFactory->create(), $this->request);
+        return $this->exceptionHandler->handle($bootstrap, $exception, $this->response, $this->request);
     }
 
     private function handleResponse(ResultInterface|HttpInterface|ResponseInterface $result): HttpInterface
@@ -70,11 +70,10 @@ class Http implements AppInterface
 
     private function handleLayoutResult(ResultInterface $result): HttpInterface
     {
-        $response = $this->responseFactory->create();
         $this->registry->register('use_page_cache_plugin', true, true);
-        $result->renderResult($response);
+        $result->renderResult($this->response);
 
-        return $response;
+        return $this->response;
     }
 
     private function handleHead(HttpRequestInterface $request, HttpInterface $response): HttpInterface
